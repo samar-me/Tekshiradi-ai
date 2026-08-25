@@ -89,10 +89,20 @@ bot.on('message', async (ctx) => {
 // If run directly: tsx bot/index.ts
 if (require.main === module) {
   console.log('🤖 Teacher AI Telegram Bot ishga tushmoqda...');
-  bot.start({
-    onStart: (botInfo) => {
-      console.log(`✅ Bot @${botInfo.username} muvaffaqiyatli ishga tushdi!`);
-      console.log(`🌐 Mini App URL: ${appUrl}`);
-    },
-  });
+  
+  (async () => {
+    try {
+      // Clear any conflicting webhook before starting polling
+      await bot.api.deleteWebhook({ drop_pending_updates: true });
+    } catch (e) {
+      // Ignore if no webhook exists
+    }
+
+    bot.start({
+      onStart: (botInfo) => {
+        console.log(`✅ Bot @${botInfo.username} muvaffaqiyatli ishga tushdi!`);
+        console.log(`🌐 Mini App URL: ${appUrl}`);
+      },
+    });
+  })();
 }

@@ -16,7 +16,7 @@ export function verifyTelegramInitData(
   }
 
   // Support development bypass if configured
-  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true' && initData.startsWith('dev_mode=')) {
+  if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_DEV_MODE === 'true' && initData.startsWith('dev_mode=')) {
     try {
       const parsed = JSON.parse(decodeURIComponent(initData.replace('dev_mode=', '')));
       return {
@@ -39,7 +39,7 @@ export function verifyTelegramInitData(
 
   if (!token || token === 'your_telegram_bot_token_from_botfather') {
     // If dev mode is enabled and no token is set, allow dev mode
-    if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
       const params = new URLSearchParams(initData);
       const userRaw = params.get('user');
       let user: TelegramUser | undefined;
