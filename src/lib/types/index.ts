@@ -2,6 +2,7 @@ export interface User {
   id: string;
   auth_user_id?: string | null;
   telegram_id: number | null;
+  username?: string | null;
   full_name: string;
   phone?: string | null;
   email?: string | null;
