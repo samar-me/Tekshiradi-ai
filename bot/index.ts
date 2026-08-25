@@ -54,7 +54,7 @@ Ilovani brauzerda ochish: [http://localhost:3000](http://localhost:3000)
 💡 *Eslatma: Telegram ichida ochilishi uchun ilovani Vercel yoki ngrok (HTTPS) ga joylash lozim.*`;
     await ctx.reply(welcomeText, {
       parse_mode: 'Markdown',
-      disable_web_page_preview: true,
+      link_preview_options: { is_disabled: true },
     });
   }
 });
