@@ -26,13 +26,13 @@ export function OnboardingModal(){
   const [step,setStep]=React.useState(1); const [name,setName]=React.useState(user?.full_name||'');
   const [school,setSchool]=React.useState(user?.school_name||''); const [region,setRegion]=React.useState(user?.region||'');
   const [district,setDistrict]=React.useState(user?.district||''); const [subject,setSubject]=React.useState(user?.subject||'');
-  const [channel,setChannel]=React.useState<'phone'|'email'>('phone'); const [value,setValue]=React.useState('');
+  const [channel,setChannel]=React.useState<'phone'|'email'>('email'); const [value,setValue]=React.useState('');
   const [otp,setOtp]=React.useState(''); const [sent,setSent]=React.useState(false); const [busy,setBusy]=React.useState(false); const [error,setError]=React.useState('');
   if(!showOnboarding)return null;
-  const finish=(nextUser=user)=>{if(nextUser)updateUser(nextUser);setShowOnboarding(false)};
+  const finish=async(nextUser=user)=>{setBusy(true);const r=await fetch('/api/auth/onboarding',{method:'PATCH'});const d=await r.json();setBusy(false);if(!r.ok){setError(d.error||'Yakunlab bo\u2018lmadi');return}updateUser(d.user||nextUser);setShowOnboarding(false)};
   const saveProfile=async()=>{if(!name.trim()||!region||!district||!subject){setError('Majburiy maydonlarni to‘ldiring');return}setBusy(true);const r=await fetch('/api/auth/onboarding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fullName:name.trim(),schoolName:school.trim()||null,region,district,subject})});const d=await r.json();setBusy(false);if(!r.ok){setError(d.error||'Profil saqlanmadi');return}setStep(3);setError('');updateUser(d.user);setShowOnboarding(true)};
   const send=async()=>{setBusy(true);setError('');const r=await fetch('/api/auth/otp/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,value,purpose:'link'})});const d=await r.json();setBusy(false);if(!r.ok){setError(d.error);return}setSent(true)};
-  const verify=async()=>{setBusy(true);const r=await fetch('/api/auth/otp/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,value,token:otp,purpose:'link'})});const d=await r.json();setBusy(false);if(!r.ok){setError(d.error);return}finish(d.user)};
+  const verify=async()=>{setBusy(true);const r=await fetch('/api/auth/otp/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,value,token:otp,purpose:'link'})});const d=await r.json();setBusy(false);if(!r.ok){setError(d.error);return}await finish(d.user)};
   return <div className="fixed inset-0 z-[80] overflow-y-auto bg-[var(--background)]"><div className="mx-auto flex min-h-full max-w-xl flex-col px-5 py-6 sm:justify-center sm:py-10">
     <div className="mb-8 flex items-center justify-between"><div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-primary text-white"><ScanLine className="h-4 w-4"/></span><span className="text-sm font-semibold">Tekshiradi AI</span></div><span className="text-xs text-muted">{step} / 3</span></div>
     <div className="mb-8 grid grid-cols-3 gap-2">{[1,2,3].map(x=><div key={x} className={`h-1 rounded-full ${x<=step?'bg-primary':'app-muted'}`}/>)}</div>

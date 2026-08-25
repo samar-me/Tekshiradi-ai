@@ -42,7 +42,7 @@ export interface Student {
   created_at: string;
 }
 
-export type TaskType = 'test' | 'yozma' | 'uy_vazifasi' | 'boshqa';
+export type TaskType = 'test' | 'yozma' | 'diktant' | 'uy_vazifasi' | 'boshqa';
 
 export interface Submission {
   id: string;

@@ -100,7 +100,6 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({
       success: true,
       user: dbUser,
-      sessionToken,
       isNewUser: isNewUser || dbUser.onboarding_completed === false || !dbUser.subject,
     });
 

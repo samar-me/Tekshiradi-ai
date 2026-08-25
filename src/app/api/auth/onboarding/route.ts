@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
           subject: subject,
           region,
           district,
-          onboarding_completed: true,
+          onboarding_completed: false,
           updated_at: new Date().toISOString(),
         })
         .eq('id', session.userId)
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
         existing.subject = subject;
         existing.region = region;
         existing.district = district;
-        existing.onboarding_completed = true;
+        existing.onboarding_completed = false;
         existing.updated_at = new Date().toISOString();
         memoryDB.users.set(session.userId, existing);
         updatedUser = existing;
@@ -82,4 +82,18 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = await getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: "Avtorizatsiyadan o'tilmagan" }, { status: 401 });
+  if (isSupabaseConfigured) {
+    const { data, error } = await supabaseAdmin.from('users').update({ onboarding_completed: true, updated_at: new Date().toISOString() }).eq('id', session.userId).select('*').single();
+    if (error) return NextResponse.json({ error: 'Onboardingni yakunlab bo\u2018lmadi' }, { status: 500 });
+    return NextResponse.json({ success: true, user: data });
+  }
+  const user = memoryDB.users.get(session.userId);
+  if (!user) return NextResponse.json({ error: 'Foydalanuvchi topilmadi' }, { status: 404 });
+  user.onboarding_completed = true;
+  return NextResponse.json({ success: true, user });
 }
