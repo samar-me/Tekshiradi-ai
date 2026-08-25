@@ -9,6 +9,8 @@ const onboardingSchema = z.object({
   fullName: z.string().min(2, "Ism va familiyani to'liq kiriting"),
   schoolName: z.string().optional().nullable(),
   subject: z.string().min(2, "Asosiy fanni tanlang yoki kiriting"),
+  region: z.string().min(2, "Viloyatni tanlang"),
+  district: z.string().min(2, "Tuman yoki shaharni tanlang"),
 });
 
 export async function POST(req: NextRequest) {
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { fullName, schoolName, subject } = parsed.data;
+    const { fullName, schoolName, subject, region, district } = parsed.data;
 
     let updatedUser: any = null;
 
@@ -39,6 +41,9 @@ export async function POST(req: NextRequest) {
           full_name: fullName,
           school_name: schoolName || null,
           subject: subject,
+          region,
+          district,
+          onboarding_completed: true,
           updated_at: new Date().toISOString(),
         })
         .eq('id', session.userId)
@@ -57,6 +62,9 @@ export async function POST(req: NextRequest) {
         existing.full_name = fullName;
         existing.school_name = schoolName || null;
         existing.subject = subject;
+        existing.region = region;
+        existing.district = district;
+        existing.onboarding_completed = true;
         existing.updated_at = new Date().toISOString();
         memoryDB.users.set(session.userId, existing);
         updatedUser = existing;

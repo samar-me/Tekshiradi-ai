@@ -100,6 +100,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
         .from('students')
         .insert({
           class_id: classId,
+          teacher_id: session.userId,
           full_name: fullName,
         })
         .select('*')

@@ -101,16 +101,12 @@ export async function POST(req: NextRequest) {
       success: true,
       user: dbUser,
       sessionToken,
-      isNewUser: isNewUser || !dbUser.subject, // Needs onboarding if subject is missing
+      isNewUser: isNewUser || dbUser.onboarding_completed === false || !dbUser.subject,
     });
 
     // Set HTTP-only session cookie
     response.cookies.set('teacher_ai_session', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: '/',
+      httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 24 * 30, path: '/',
     });
 
     return response;

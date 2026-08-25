@@ -1,0 +1,6 @@
+import { NextRequest,NextResponse } from 'next/server';
+import { z } from 'zod';
+import { createAuthClient,normalizePhone } from '@/lib/auth/account';
+import { isSupabaseConfigured } from '@/lib/supabase/admin';
+const schema=z.object({channel:z.enum(['phone','email']),value:z.string().min(5),purpose:z.enum(['link','recover'])});
+export async function POST(req:NextRequest){try{if(!isSupabaseConfigured)return NextResponse.json({error:'OTP xizmati sozlanmagan'},{status:503});const parsed=schema.safeParse(await req.json());if(!parsed.success)return NextResponse.json({error:'Telefon yoki email noto‘g‘ri'},{status:400});const{channel,purpose}=parsed.data;const value=channel==='phone'?normalizePhone(parsed.data.value):parsed.data.value.trim().toLowerCase();const auth=createAuthClient();const credentials=channel==='phone'?{phone:value,options:{shouldCreateUser:purpose==='link'}}:{email:value,options:{shouldCreateUser:purpose==='link'}};const{error}=await auth.auth.signInWithOtp(credentials);if(error)return NextResponse.json({error:purpose==='recover'?'Bu ma’lumot bilan akkaunt topilmadi':'Tasdiqlash kodini yuborib bo‘lmadi'},{status:400});return NextResponse.json({success:true,value,message:channel==='phone'?'SMS kod yuborildi':'Emailga tasdiqlash kodi yuborildi'});}catch{return NextResponse.json({error:'Tasdiqlash kodini yuborishda xatolik'},{status:500})}}

@@ -1,179 +1,46 @@
 'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
+import { ArrowLeft, ArrowRight, Mail, Phone, ScanLine, ShieldCheck } from 'lucide-react';
 import { useTelegram } from '../providers/TelegramProvider';
-import { BookOpen, School, User, Sparkles, Loader2 } from 'lucide-react';
 
-const COMMON_SUBJECTS = [
-  'Matematika',
-  'Ona tili va adabiyot',
-  'Ingliz tili',
-  'Fizika',
-  'Kimyo',
-  'Biologiya',
-  'Tarix',
-  'Informatika',
-  'Boshlang‘ich ta’lim',
-  'Geografiya',
-];
+const regions = [
+  ['Toshkent shahri','Bektemir,Chilonzor,Mirobod,Mirzo Ulug‘bek,Olmazor,Sergeli,Shayxontohur,Uchtepa,Yakkasaroy,Yashnobod,Yunusobod'],
+  ['Toshkent viloyati','Angren,Bekobod,Bo‘stonliq,Chirchiq,Qibray,Olmaliq,Parkent,Yangiyo‘l'],
+  ['Andijon viloyati','Andijon shahri,Asaka,Baliqchi,Marhamat,Shahrixon'],
+  ['Buxoro viloyati','Buxoro shahri,G‘ijduvon,Kogon,Romitan,Vobkent'],
+  ['Farg‘ona viloyati','Farg‘ona shahri,Qo‘qon,Marg‘ilon,Quva,Rishton'],
+  ['Jizzax viloyati','Jizzax shahri,G‘allaorol,Zomin,Paxtakor'],
+  ['Namangan viloyati','Namangan shahri,Chortoq,Chust,Pop,Uychi'],
+  ['Navoiy viloyati','Navoiy shahri,Zarafshon,Karmana,Xatirchi'],
+  ['Qashqadaryo viloyati','Qarshi shahri,Shahrisabz,Kitob,Koson,Muborak'],
+  ['Qoraqalpog‘iston Respublikasi','Nukus shahri,Beruniy,Chimboy,Qo‘ng‘irot,To‘rtko‘l'],
+  ['Samarqand viloyati','Samarqand shahri,Kattaqo‘rg‘on,Bulung‘ur,Jomboy,Urgut'],
+  ['Sirdaryo viloyati','Guliston shahri,Boyovut,Sardoba,Sirdaryo'],
+  ['Surxondaryo viloyati','Termiz shahri,Denov,Jarqo‘rg‘on,Sherobod'],
+  ['Xorazm viloyati','Urganch shahri,Xiva,Hazorasp,Shovot'],
+] as const;
+const subjects=['Matematika','Ona tili','Adabiyot','Ingliz tili','Rus tili','Informatika','Fizika','Kimyo','Biologiya','Tarix','Geografiya','Boshlang‘ich ta’lim','Boshqa'];
 
-export function OnboardingModal() {
-  const { user, updateUser, showOnboarding } = useTelegram();
-  const [fullName, setFullName] = useState(user?.full_name || '');
-  const [schoolName, setSchoolName] = useState(user?.school_name || '');
-  const [subject, setSubject] = useState(user?.subject || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  if (!showOnboarding) return null;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName.trim()) {
-      setError("Iltimos, ism va familiyangizni kiriting");
-      return;
-    }
-    if (!subject.trim()) {
-      setError("Iltimos, asosiy faningizni tanlang yoki kiriting");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setError(null);
-
-      const res = await fetch('/api/auth/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName: fullName.trim(),
-          schoolName: schoolName.trim() || null,
-          subject: subject.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Ma'lumotlarni saqlashda xatolik");
-      }
-
-      updateUser(data.user);
-    } catch (err: any) {
-      setError(err.message || "Xatolik yuz berdi. Qayta urinib ko'ring.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-blue-50 dark:bg-blue-950 flex items-center justify-center text-blue-600 dark:text-blue-400">
-            <Sparkles className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl font-bold">Xush kelibsiz! 👋</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Teacher AI profilingizni bir necha soniyada to'ldiring
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Full Name */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-              Ism va familiyangiz <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-3 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Masalan: Aziza Karimova"
-                className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                required
-              />
-            </div>
-          </div>
-
-          {/* School Name (Optional) */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-              Maktab nomi / raqami <span className="text-slate-400 font-normal">(ixtiyoriy)</span>
-            </label>
-            <div className="relative">
-              <School className="absolute left-3.5 top-3 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                value={schoolName}
-                onChange={(e) => setSchoolName(e.target.value)}
-                placeholder="Masalan: 45-maktab yoki IDUM"
-                className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Main Subject */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-              Asosiy faningiz <span className="text-red-500">*</span>
-            </label>
-            <div className="relative mb-2">
-              <BookOpen className="absolute left-3.5 top-3 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Fan nomini yozing yoki pastdan tanlang"
-                className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                required
-              />
-            </div>
-
-            {/* Quick subject pills */}
-            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto py-1">
-              {COMMON_SUBJECTS.map((item) => (
-                <button
-                  type="button"
-                  key={item}
-                  onClick={() => setSubject(item)}
-                  className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
-                    subject === item
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full mt-6 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all disabled:opacity-70"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Saqlanmoqda...</span>
-              </>
-            ) : (
-              <span>Boshlash 🚀</span>
-            )}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+export function OnboardingModal(){
+  const { user,tgUser,showOnboarding,updateUser,setShowOnboarding }=useTelegram();
+  const [step,setStep]=React.useState(1); const [name,setName]=React.useState(user?.full_name||'');
+  const [school,setSchool]=React.useState(user?.school_name||''); const [region,setRegion]=React.useState(user?.region||'');
+  const [district,setDistrict]=React.useState(user?.district||''); const [subject,setSubject]=React.useState(user?.subject||'');
+  const [channel,setChannel]=React.useState<'phone'|'email'>('phone'); const [value,setValue]=React.useState('');
+  const [otp,setOtp]=React.useState(''); const [sent,setSent]=React.useState(false); const [busy,setBusy]=React.useState(false); const [error,setError]=React.useState('');
+  if(!showOnboarding)return null;
+  const finish=(nextUser=user)=>{if(nextUser)updateUser(nextUser);setShowOnboarding(false)};
+  const saveProfile=async()=>{if(!name.trim()||!region||!district||!subject){setError('Majburiy maydonlarni to‘ldiring');return}setBusy(true);const r=await fetch('/api/auth/onboarding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fullName:name.trim(),schoolName:school.trim()||null,region,district,subject})});const d=await r.json();setBusy(false);if(!r.ok){setError(d.error||'Profil saqlanmadi');return}setStep(3);setError('');updateUser(d.user);setShowOnboarding(true)};
+  const send=async()=>{setBusy(true);setError('');const r=await fetch('/api/auth/otp/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,value,purpose:'link'})});const d=await r.json();setBusy(false);if(!r.ok){setError(d.error);return}setSent(true)};
+  const verify=async()=>{setBusy(true);const r=await fetch('/api/auth/otp/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,value,token:otp,purpose:'link'})});const d=await r.json();setBusy(false);if(!r.ok){setError(d.error);return}finish(d.user)};
+  return <div className="fixed inset-0 z-[80] overflow-y-auto bg-[var(--background)]"><div className="mx-auto flex min-h-full max-w-xl flex-col px-5 py-6 sm:justify-center sm:py-10">
+    <div className="mb-8 flex items-center justify-between"><div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-primary text-white"><ScanLine className="h-4 w-4"/></span><span className="text-sm font-semibold">Tekshiradi AI</span></div><span className="text-xs text-muted">{step} / 3</span></div>
+    <div className="mb-8 grid grid-cols-3 gap-2">{[1,2,3].map(x=><div key={x} className={`h-1 rounded-full ${x<=step?'bg-primary':'app-muted'}`}/>)}</div>
+    {step===1&&<section className="animate-page-in text-center"><div className="app-muted mx-auto flex h-20 w-20 items-center justify-center rounded-full text-xl font-semibold">{tgUser?.first_name?.[0]||name[0]||'O‘'}</div><h1 className="mt-6 text-2xl font-semibold tracking-[-.03em]">Tekshiradi AI’ga xush kelibsiz</h1><p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">O‘quvchilar ishlarini tezroq tekshiring va barcha natijalarni bir joyda saqlang.</p><button onClick={()=>setStep(2)} className="mt-8 flex min-h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-primary text-sm font-medium text-white">Davom etish<ArrowRight className="h-4 w-4"/></button></section>}
+    {step===2&&<section className="animate-page-in"><h1 className="text-2xl font-semibold">O‘qituvchi profili</h1><p className="mt-2 text-sm text-muted">Kundalik ishda kerak bo‘ladigan ma’lumotlar.</p><Error text={error}/><div className="mt-6 grid gap-4"><Field label="Ism va familiya"><input value={name} onChange={e=>setName(e.target.value)} className="field" placeholder="Aziza Karimova"/></Field><Field label="Maktab (ixtiyoriy)"><input value={school} onChange={e=>setSchool(e.target.value)} className="field" placeholder="Masalan: 23-maktab"/></Field><div className="grid gap-4 sm:grid-cols-2"><Field label="Viloyat"><select value={region} onChange={e=>{setRegion(e.target.value);setDistrict('')}} className="field"><option value="">Tanlang</option>{regions.map(r=><option key={r[0]}>{r[0]}</option>)}</select></Field><Field label="Tuman / shahar"><select value={district} onChange={e=>setDistrict(e.target.value)} className="field" disabled={!region}><option value="">Tanlang</option>{regions.find(r=>r[0]===region)?.[1].split(',').map(d=><option key={d}>{d}</option>)}</select></Field></div><Field label="Asosiy fan"><input list="subjects" value={subject} onChange={e=>setSubject(e.target.value)} className="field" placeholder="Fan nomini qidiring"/><datalist id="subjects">{subjects.map(s=><option key={s} value={s}/>)}</datalist></Field></div><div className="mt-7 flex gap-2"><button onClick={()=>setStep(1)} className="flex min-h-11 items-center gap-2 rounded-[10px] border px-4 text-sm"><ArrowLeft className="h-4 w-4"/>Orqaga</button><button onClick={saveProfile} disabled={busy} className="min-h-11 flex-1 rounded-[10px] bg-primary px-4 text-sm font-medium text-white">{busy?'Saqlanmoqda...':'Davom etish'}</button></div></section>}
+    {step===3&&<section className="animate-page-in"><span className="app-muted flex h-12 w-12 items-center justify-center rounded-[11px] text-primary"><ShieldCheck className="h-6 w-6"/></span><h1 className="mt-5 text-2xl font-semibold">Akkauntingizni himoyalang</h1><p className="mt-2 text-sm leading-6 text-muted">Boshqa qurilmadan kirganingizda ma’lumotlaringizni tiklash uchun telefon yoki email ulang.</p><div className="mt-6 grid grid-cols-2 gap-2"><Channel active={channel==='phone'} onClick={()=>{setChannel('phone');setSent(false)}} icon={<Phone className="h-4 w-4"/>}>Telefon</Channel><Channel active={channel==='email'} onClick={()=>{setChannel('email');setSent(false)}} icon={<Mail className="h-4 w-4"/>}>Email</Channel></div><Error text={error}/><div className="mt-4"><input value={value} onChange={e=>setValue(e.target.value)} className="field" placeholder={channel==='phone'?'+998 90 123 45 67':'siz@email.uz'} type={channel==='email'?'email':'tel'}/>{sent&&<input value={otp} onChange={e=>setOtp(e.target.value.replace(/\D/g,'').slice(0,6))} className="field mt-3 text-center tracking-[.4em]" inputMode="numeric" placeholder="000000"/>}</div><button onClick={sent?verify:send} disabled={busy||!value} className="mt-4 min-h-11 w-full rounded-[10px] bg-primary text-sm font-medium text-white">{busy?'Kutilmoqda...':sent?'Tasdiqlash':'Kod yuborish'}</button><button onClick={()=>finish()} className="mt-3 min-h-11 w-full text-sm font-medium text-muted">Keyinroq</button><p className="mt-3 text-center text-xs leading-5 text-amber-700 dark:text-amber-300">Telegram akkauntingizga kirish imkonini yo‘qotsangiz, ma’lumotlarni tiklash qiyinlashishi mumkin.</p></section>}
+  </div><style jsx>{`.field{width:100%;min-height:44px;border:1px solid var(--border);border-radius:10px;background:transparent;padding:0 12px;font-size:14px;outline:none}.field:focus{border-color:var(--primary)}`}</style></div>;
 }
+function Field({label,children}:{label:string;children:React.ReactNode}){return <label className="text-xs font-medium">{label}<div className="mt-1.5">{children}</div></label>}
+function Error({text}:{text:string}){return text?<p role="alert" className="mt-4 rounded-[10px] bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{text}</p>:null}
+function Channel({active,onClick,icon,children}:{active:boolean;onClick:()=>void;icon:React.ReactNode;children:React.ReactNode}){return <button onClick={onClick} className={`flex min-h-11 items-center justify-center gap-2 rounded-[10px] border text-sm ${active?'border-[var(--primary)] text-primary':''}`}>{icon}{children}</button>}

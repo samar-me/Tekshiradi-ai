@@ -1,0 +1,7 @@
+import { NextRequest,NextResponse } from 'next/server';
+import { z } from 'zod';
+import { getSessionFromRequest,SESSION_COOKIE_NAME } from '@/lib/auth/session';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+const settings=z.object({language:z.enum(['uz','ru']),theme:z.enum(['system','light','dark']),notifications:z.boolean(),default_max_score:z.number().int().min(1).max(100)});
+export async function PATCH(req:NextRequest){const session=await getSessionFromRequest(req);if(!session)return NextResponse.json({error:'Avtorizatsiyadan o‘tilmagan'},{status:401});const parsed=settings.safeParse(await req.json());if(!parsed.success)return NextResponse.json({error:'Sozlamalar noto‘g‘ri'},{status:400});const{data,error}=await supabaseAdmin.from('users').update({preferences:parsed.data}).eq('id',session.userId).select('*').single();if(error)return NextResponse.json({error:'Sozlamalarni saqlab bo‘lmadi'},{status:500});return NextResponse.json({success:true,user:data})}
+export async function DELETE(req:NextRequest){const session=await getSessionFromRequest(req);if(!session)return NextResponse.json({error:'Avtorizatsiyadan o‘tilmagan'},{status:401});const grace=new Date(Date.now()+14*86400000).toISOString();const{error}=await supabaseAdmin.from('users').update({deletion_requested_at:grace}).eq('id',session.userId);if(error)return NextResponse.json({error:'So‘rovni saqlab bo‘lmadi'},{status:500});const response=NextResponse.json({success:true,deletesAt:grace});response.cookies.set(SESSION_COOKIE_NAME,'',{expires:new Date(0),path:'/'});return response}

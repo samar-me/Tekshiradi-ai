@@ -1,149 +1,18 @@
 'use client';
-
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, TelegramUser } from '@/lib/types';
-
-interface TelegramContextType {
-  user: User | null;
-  tgUser: TelegramUser | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  isNewUser: boolean;
-  showOnboarding: boolean;
-  stats: {
-    todayChecked: number;
-    totalChecked: number;
-    classCount: number;
-    studentCount: number;
-  };
-  setShowOnboarding: (show: boolean) => void;
-  refreshUser: () => Promise<void>;
-  updateUser: (updatedUser: User) => void;
-}
-
-const TelegramContext = createContext<TelegramContextType>({
-  user: null,
-  tgUser: null,
-  isLoading: true,
-  isAuthenticated: false,
-  isNewUser: false,
-  showOnboarding: false,
-  stats: { todayChecked: 0, totalChecked: 0, classCount: 0, studentCount: 0 },
-  setShowOnboarding: () => {},
-  refreshUser: async () => {},
-  updateUser: () => {},
-});
-
-export const useTelegram = () => useContext(TelegramContext);
-
-export function TelegramProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [tgUser, setTgUser] = useState<TelegramUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isNewUser, setIsNewUser] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [stats, setStats] = useState({
-    todayChecked: 0,
-    totalChecked: 0,
-    classCount: 0,
-    studentCount: 0,
-  });
-
-  const authenticate = async () => {
-    try {
-      setIsLoading(true);
-
-      // Check if running inside Telegram WebApp
-      let initData = '';
-      if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
-        const tg = (window as any).Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        initData = tg.initData || '';
-        if (tg.initDataUnsafe?.user) {
-          setTgUser(tg.initDataUnsafe.user);
-        }
-      }
-
-      // If empty and dev mode enabled, provide mock initData
-      if (!initData) {
-        initData = 'dev_mode=' + encodeURIComponent(JSON.stringify({
-          user: {
-            id: 99999999,
-            first_name: "Aziza",
-            last_name: "Karimova",
-            username: "aziza_teacher",
-          },
-        }));
-      }
-
-      const res = await fetch('/api/auth/telegram', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success && data.user) {
-        setUser(data.user);
-        setIsNewUser(Boolean(data.isNewUser));
-        if (data.isNewUser || !data.user.subject) {
-          setShowOnboarding(true);
-        }
-        await fetchStats();
-      } else {
-        console.warn('Telegram auth failed:', data.error);
-      }
-    } catch (err) {
-      console.error('Error during Telegram auth initialization:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('/api/me');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.user) setUser(data.user);
-        if (data.stats) setStats(data.stats);
-      }
-    } catch (err) {
-      console.error('Error fetching user profile/stats:', err);
-    }
-  };
-
-  useEffect(() => {
-    authenticate();
-  }, []);
-
-  const updateUser = (updated: User) => {
-    setUser(updated);
-    if (updated.subject) {
-      setShowOnboarding(false);
-      setIsNewUser(false);
-    }
-  };
-
-  return (
-    <TelegramContext.Provider
-      value={{
-        user,
-        tgUser,
-        isLoading,
-        isAuthenticated: Boolean(user),
-        isNewUser,
-        showOnboarding,
-        stats,
-        setShowOnboarding,
-        refreshUser: fetchStats,
-        updateUser,
-      }}
-    >
-      {children}
-    </TelegramContext.Provider>
-  );
-}
+import React,{createContext,useContext,useEffect,useState}from'react';
+import Link from'next/link';
+import{usePathname}from'next/navigation';
+import{ScanLine,ShieldCheck}from'lucide-react';
+import{User,TelegramUser}from'@/lib/types';
+export type AuthState='loading'|'unauthenticated'|'new_user'|'onboarding'|'authenticated'|'recovering'|'error';
+interface Context{user:User|null;tgUser:TelegramUser|null;isLoading:boolean;isAuthenticated:boolean;isNewUser:boolean;showOnboarding:boolean;authState:AuthState;stats:{todayChecked:number;totalChecked:number;classCount:number;studentCount:number};setShowOnboarding:(v:boolean)=>void;refreshUser:()=>Promise<void>;updateUser:(u:User)=>void;logout:()=>Promise<void>}
+const defaults={todayChecked:0,totalChecked:0,classCount:0,studentCount:0};const C=createContext<Context>({user:null,tgUser:null,isLoading:true,isAuthenticated:false,isNewUser:false,showOnboarding:false,authState:'loading',stats:defaults,setShowOnboarding:()=>{},refreshUser:async()=>{},updateUser:()=>{},logout:async()=>{}});export const useTelegram=()=>useContext(C);
+export function TelegramProvider({children}:{children:React.ReactNode}){const path=usePathname();const[user,setUser]=useState<User|null>(null);const[tgUser,setTgUser]=useState<TelegramUser|null>(null);const[state,setState]=useState<AuthState>('loading');const[show,setShow]=useState(false);const[stats,setStats]=useState(defaults);
+ const apply=(data:any)=>{if(data.user){setUser(data.user);if(data.stats)setStats(data.stats);const needs=Boolean(data.isNewUser||data.user.onboarding_completed===false||!data.user.subject);setShow(needs);setState(needs?'new_user':'authenticated');return true}return false};
+ const refreshUser=async()=>{const r=await fetch('/api/me',{cache:'no-store'});if(r.ok)apply(await r.json());};
+ const boot=async()=>{try{setState('loading');const session=await fetch('/api/me',{cache:'no-store'});if(session.ok&&apply(await session.json()))return;let initData='';const tg=(window as any).Telegram?.WebApp;if(tg){tg.ready();tg.expand();initData=tg.initData||'';if(tg.initDataUnsafe?.user)setTgUser(tg.initDataUnsafe.user)}if(!initData&&process.env.NEXT_PUBLIC_DEV_MODE==='true')initData='dev_mode='+encodeURIComponent(JSON.stringify({user:{id:99999999,first_name:'Aziza',last_name:'Karimova'}}));if(initData){const r=await fetch('/api/auth/telegram',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData})});if(r.ok&&apply(await r.json())){await refreshUser();return}}setState('unauthenticated')}catch{setState('error')}};
+ useEffect(()=>{boot()},[]);const updateUser=(u:User)=>{setUser(u);setShow(false);setState('authenticated')};const logout=async()=>{await fetch('/api/auth/logout',{method:'POST'});setUser(null);setStats(defaults);setShow(false);setState('unauthenticated')};
+ const publicRoute=path.startsWith('/auth/');return <C.Provider value={{user,tgUser,isLoading:state==='loading',isAuthenticated:state==='authenticated'||state==='new_user'||state==='onboarding',isNewUser:state==='new_user',showOnboarding:show,authState:state,stats,setShowOnboarding:v=>{setShow(v);if(v)setState('onboarding')},refreshUser,updateUser,logout}}>{state==='loading'?<Splash/>:(!publicRoute&&state==='unauthenticated')?<LoginGate/>:(!publicRoute&&state==='error')?<ErrorGate onRetry={boot}/>:children}</C.Provider>}
+function Splash(){return <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[var(--background)]"><span className="flex h-12 w-12 items-center justify-center rounded-[12px] bg-primary text-white"><ScanLine className="h-6 w-6"/></span><h1 className="mt-4 text-lg font-semibold">Tekshiradi AI</h1><p className="mt-2 text-sm text-muted">Ma’lumotlaringiz yuklanmoqda...</p><div className="mt-6 h-1 w-32 overflow-hidden rounded-full app-muted"><div className="h-full w-1/2 animate-pulse rounded-full bg-primary"/></div></div>}
+function LoginGate(){return <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[var(--background)] p-4"><div className="w-full max-w-sm text-center"><span className="mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] bg-primary text-white"><ShieldCheck className="h-6 w-6"/></span><h1 className="mt-5 text-2xl font-semibold">Akkauntingizga kiring</h1><p className="mt-2 text-sm leading-6 text-muted">Telegram orqali oching yoki telefon va email yordamida ma’lumotlaringizni tiklang.</p><Link href="/auth/recover" className="mt-6 flex min-h-11 items-center justify-center rounded-[10px] bg-primary px-4 text-sm font-medium text-white">Akkauntni tiklash</Link><p className="mt-4 text-xs text-muted">Ma’lumotlaringiz akkauntingizda xavfsiz saqlanadi.</p></div></div>}
+function ErrorGate({onRetry}:{onRetry:()=>void}){return <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 text-center"><div><h1 className="text-lg font-semibold">Kirishda xatolik yuz berdi</h1><button onClick={onRetry} className="mt-4 min-h-11 rounded-[10px] bg-primary px-4 text-sm text-white">Qayta urinish</button></div></div>}

@@ -1,0 +1,6 @@
+import { NextRequest,NextResponse } from 'next/server';
+import { z } from 'zod';
+import { getSessionFromRequest } from '@/lib/auth/session';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+const schema=z.object({fullName:z.string().min(2),schoolName:z.string().nullable().optional(),region:z.string().nullable().optional(),district:z.string().nullable().optional(),subject:z.string().min(2),additionalSubjects:z.array(z.string()).max(8).optional()});
+export async function PATCH(req:NextRequest){const session=await getSessionFromRequest(req);if(!session)return NextResponse.json({error:'Avtorizatsiyadan o‘tilmagan'},{status:401});const parsed=schema.safeParse(await req.json());if(!parsed.success)return NextResponse.json({error:'Profil ma’lumotlari noto‘g‘ri'},{status:400});const p=parsed.data;const{data,error}=await supabaseAdmin.from('users').update({full_name:p.fullName,school_name:p.schoolName||null,region:p.region||null,district:p.district||null,subject:p.subject,additional_subjects:p.additionalSubjects||[]}).eq('id',session.userId).select('*').single();if(error)return NextResponse.json({error:'Profilni saqlab bo‘lmadi'},{status:500});return NextResponse.json({success:true,user:data})}

@@ -1,11 +1,27 @@
 export interface User {
   id: string;
-  telegram_id: number;
+  auth_user_id?: string | null;
+  telegram_id: number | null;
   full_name: string;
+  phone?: string | null;
+  email?: string | null;
+  avatar_url?: string | null;
   school_name?: string | null;
   subject?: string | null;
+  region?: string | null;
+  district?: string | null;
+  additional_subjects?: string[];
+  onboarding_completed?: boolean;
+  preferences?: AccountPreferences;
   created_at: string;
   updated_at: string;
+}
+
+export interface AccountPreferences {
+  language: 'uz' | 'ru';
+  theme: 'system' | 'light' | 'dark';
+  notifications: boolean;
+  default_max_score: number;
 }
 
 export interface ClassItem {
@@ -21,6 +37,7 @@ export interface ClassItem {
 export interface Student {
   id: string;
   class_id: string;
+  teacher_id?: string;
   full_name: string;
   created_at: string;
 }
@@ -112,6 +129,7 @@ export interface TelegramInitData {
 
 export interface AuthSession {
   userId: string;
-  telegramId: number;
+  authUserId?: string;
+  telegramId?: number | null;
   fullName: string;
 }
