@@ -1,29 +1,6 @@
 'use client';
-
 import React from 'react';
-import { History, Clock, FileText } from 'lucide-react';
-
-export default function TarixPage() {
-  return (
-    <div className="space-y-4 animate-fadeIn">
-      <div>
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Tekshiruvlar tarixi</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Avval tekshirilgan va tasdiqlangan o'quvchilar ishlari
-        </p>
-      </div>
-
-      <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm text-center py-8">
-        <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-          <History className="w-7 h-7" />
-        </div>
-        <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
-          Hozircha tekshiruvlar mavjud emas
-        </h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-          Ishlarni tekshirib tasdiqlaganingizdan so'ng, ular shu yerda saqlanadi.
-        </p>
-      </div>
-    </div>
-  );
-}
+import { CalendarDays, Filter, Search } from 'lucide-react';
+import { EmptyState, PageHeader } from '@/components/ui';
+export default function TarixPage(){const[query,setQuery]=React.useState('');return <div className="animate-page-in space-y-6"><PageHeader title="Tekshiruvlar tarixi" description="Barcha tasdiqlangan natijalar bir joyda."/><div className="app-surface grid gap-2 rounded-[12px] border p-2 sm:grid-cols-[1fr_repeat(3,auto)]"><label className="app-muted flex min-h-11 items-center gap-2 rounded-[9px] px-3"><Search className="h-4 w-4 text-muted"/><span className="sr-only">Tarixdan qidirish</span><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="O‘quvchi yoki sinfni qidirish" className="w-full bg-transparent text-sm outline-none"/></label><FilterButton label="Sinf"/><FilterButton label="Ish turi"/><FilterButton label="Sana" icon={<CalendarDays className="h-4 w-4"/>}/></div><EmptyState title="Hali tekshiruvlar yo‘q" description="Tasdiqlangan o‘quvchi ishlari shu sahifada saqlanadi. Birinchi tekshiruvni boshlang." actionLabel="Tekshirishni boshlash" href="/tekshirish"/></div>}
+function FilterButton({label,icon}:{label:string;icon?:React.ReactNode}){return <button className="app-muted flex min-h-11 items-center justify-center gap-2 rounded-[9px] px-3 text-xs font-medium">{icon||<Filter className="h-4 w-4"/>}{label}</button>}

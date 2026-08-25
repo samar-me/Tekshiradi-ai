@@ -1,161 +1,21 @@
 'use client';
-
 import React from 'react';
 import Link from 'next/link';
+import { ArrowRight, Camera, FileCheck2, GraduationCap, ImagePlus, Users } from 'lucide-react';
 import { useTelegram } from '@/components/providers/TelegramProvider';
-import {
-  Sparkles,
-  Users,
-  CheckCircle2,
-  TrendingUp,
-  Plus,
-  ArrowRight,
-  GraduationCap,
-  FileCheck,
-} from 'lucide-react';
+import { Card, EmptyState, SectionTitle } from '@/components/ui';
+import { ClassItem } from '@/lib/types';
 
-export default function HomePage() {
-  const { user, stats, isLoading, refreshUser } = useTelegram();
-
-  React.useEffect(() => {
-    refreshUser();
-  }, []);
-
-  const teacherName = user?.full_name || "Hurmatli O'qituvchi";
-
-  return (
-    <div className="space-y-5 animate-fadeIn">
-      {/* Teacher Greeting Card */}
-      <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-500/20">
-        <div className="flex items-start justify-between">
-          <div>
-            <span className="text-xs uppercase tracking-wider font-semibold text-blue-200">
-              O'qituvchi xonasi
-            </span>
-            <h2 className="text-xl font-bold mt-1">
-              Assalomu alaykum, {isLoading ? "..." : teacherName} 👋
-            </h2>
-            <p className="text-xs text-blue-100 mt-1 max-w-[280px]">
-              AI yordamida o'quvchilar test va yozma ishlarini bir zumda tekshiring.
-            </p>
-          </div>
-        </div>
-
-        {/* Quick Action inside hero */}
-        <div className="mt-4 pt-4 border-t border-blue-400/30 flex items-center justify-between">
-          <span className="text-xs text-blue-100">
-            {user?.school_name ? `🏫 ${user.school_name}` : "🏫 Maktab o'qituvchisi"}
-          </span>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white/20 text-white backdrop-blur-sm">
-            {user?.subject || "Fan tanlanmagan"}
-          </span>
-        </div>
-      </div>
-
-      {/* MVP Statistics */}
-      <div>
-        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5 px-1">
-          Asosiy ko'rsatkichlar
-        </h3>
-        <div className="grid grid-cols-2 gap-3">
-          {/* Today Checked */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-medium">Bugun tekshirildi</span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                <FileCheck className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {stats.todayChecked} <span className="text-xs font-normal text-slate-500">ta ish</span>
-            </div>
-          </div>
-
-          {/* Total Checked */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-medium">Jami tekshirildi</span>
-              <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                <TrendingUp className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {stats.totalChecked} <span className="text-xs font-normal text-slate-500">ta ish</span>
-            </div>
-          </div>
-
-          {/* Classes */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-medium">Sinflar</span>
-              <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                <GraduationCap className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {stats.classCount} <span className="text-xs font-normal text-slate-500">ta sinf</span>
-            </div>
-          </div>
-
-          {/* Students */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-medium">O'quvchilar</span>
-              <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                <Users className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {stats.studentCount} <span className="text-xs font-normal text-slate-500">nafar</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Buttons (CTAs) */}
-      <div className="space-y-2.5 pt-2">
-        {/* Primary CTA */}
-        <Link
-          href="/tekshirish"
-          className="w-full py-4 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-base flex items-center justify-between shadow-lg shadow-blue-600/25 transition-all"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span>+ Ish tekshirish</span>
-          </div>
-          <ArrowRight className="w-5 h-5 text-blue-200" />
-        </Link>
-
-        {/* Secondary CTA */}
-        <Link
-          href="/sinflar?create=true"
-          className="w-full py-3.5 px-5 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 active:scale-[0.99] text-slate-800 dark:text-slate-200 font-medium text-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between transition-all"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
-              <Plus className="w-4 h-4" />
-            </div>
-            <span>+ Sinf yaratish</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-slate-400" />
-        </Link>
-      </div>
-
-      {/* How it works info card */}
-      <div className="p-4 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 text-xs text-slate-600 dark:text-slate-400 space-y-2">
-        <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-          <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          Qanday ishlaydi?
-        </div>
-        <ol className="list-decimal list-inside space-y-1 pl-1 text-[11px] leading-relaxed">
-          <li>Sinf va o'quvchini tanlang</li>
-          <li>O'quvchi daftari yoki test varaqasini rasmga olib yuklang</li>
-          <li>AI tahlilini ko'rib chiqing va kerak bo'lsa ballni to'g'irlang</li>
-          <li>Natijani tasdiqlang va saqlang</li>
-        </ol>
-      </div>
-    </div>
-  );
+export default function HomePage(){
+ const {user,stats,isLoading,refreshUser}=useTelegram(); const [classes,setClasses]=React.useState<ClassItem[]>([]);
+ React.useEffect(()=>{refreshUser();fetch('/api/classes').then(r=>r.json()).then(d=>setClasses(d.classes||[])).catch(()=>{});},[]);
+ const name=(user?.full_name||'O‘qituvchi').split(' ')[0];
+ return <div className="animate-page-in space-y-8">
+  <section className="flex items-start justify-between gap-4"><div><p className="text-sm text-muted">Assalomu alaykum,</p><h1 className="mt-0.5 text-2xl font-semibold tracking-[-.03em] sm:text-[28px]">{isLoading?'…':name}</h1><p className="mt-2 text-sm text-muted">{user?.school_name||'Maktab o‘qituvchisi'}{user?.subject?` · ${user.subject}`:''}</p></div></section>
+  <section><Card className="overflow-hidden"><div className="grid md:grid-cols-[1fr_auto]"><div className="p-5 sm:p-7"><span className="text-xs font-medium text-primary">YANGI TEKSHIRUV</span><h2 className="mt-2 text-xl font-semibold tracking-[-.02em]">Yangi ishni tekshirish</h2><p className="mt-1.5 max-w-lg text-sm leading-6 text-muted">Daftar, test yoki yozma ish rasmini yuklang. Natijani AI bilan tahlil qilib, o‘zingiz tasdiqlang.</p><div className="mt-5 flex flex-col gap-2 sm:flex-row"><Link href="/tekshirish" className="flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-primary px-4 text-sm font-medium text-white transition active:scale-[.98]"><ImagePlus className="h-4 w-4"/>Tekshirishni boshlash</Link><Link href="/tekshirish?camera=true" className="app-muted flex min-h-11 items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-medium transition hover:opacity-80"><Camera className="h-4 w-4"/>Kamerani ochish</Link></div></div><div className="app-muted hidden w-48 items-center justify-center border-l md:flex"><div className="app-surface flex h-20 w-20 items-center justify-center rounded-[14px] border text-primary"><FileCheck2 className="h-9 w-9" strokeWidth={1.5}/></div></div></div></Card></section>
+  <section><SectionTitle title="Ko‘rsatkichlar"/><div className="grid grid-cols-2 overflow-hidden rounded-[14px] border bg-[var(--border)] gap-px lg:grid-cols-4">{[
+   ['Bugun tekshirildi',stats.todayChecked,FileCheck2],['Jami tekshirildi',stats.totalChecked,ArrowRight],['Sinflar',stats.classCount,GraduationCap],['O‘quvchilar',stats.studentCount,Users]
+  ].map(([label,value,Icon]:any)=><div key={label} className="app-surface p-4 sm:p-5"><div className="flex items-center justify-between text-muted"><span className="text-xs font-medium">{label}</span><Icon className="h-4 w-4"/></div><p className="mt-3 text-2xl font-semibold tabular-nums">{value}</p><p className="mt-1 text-[11px] text-muted">Joriy holat</p></div>)}</div></section>
+  <div className="grid gap-8 lg:grid-cols-[1.35fr_.65fr]"><section><SectionTitle title="So‘nggi tekshiruvlar" href="/tarix"/><EmptyState title="Hali tekshiruvlar yo‘q" description="Birinchi o‘quvchi ishini tekshiring — natijalar shu yerda ko‘rinadi." actionLabel="Tekshirishni boshlash" href="/tekshirish"/></section><section><SectionTitle title="Sinflar" href="/sinflar" linkLabel="Barcha sinflar"/>{classes.length===0?<EmptyState title="Hali sinf yo‘q" description="O‘quvchilarni boshqarish uchun sinf yarating." actionLabel="Sinf yaratish" href="/sinflar?create=true"/>:<Card className="divide-y">{classes.slice(0,4).map(c=><Link key={c.id} href={`/sinflar/${c.id}`} className="flex min-h-[72px] items-center gap-3 px-4 transition hover:app-muted"><div className="app-muted flex h-9 w-9 items-center justify-center rounded-[9px] text-xs font-semibold">{c.name}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{c.name} · {c.subject}</p><p className="mt-0.5 text-xs text-muted">{c.student_count||0} o‘quvchi</p></div><ArrowRight className="h-4 w-4 text-muted"/></Link>)}</Card>}</section></div>
+ </div>
 }
