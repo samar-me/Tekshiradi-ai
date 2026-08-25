@@ -82,47 +82,47 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
     }
 
     const body = await req.json();
-    const parsed = createStudentSchema.safeParse(body);
+    const rawNames = Array.isArray(body.fullNames) ? body.fullNames : [body.fullName];
+    const names = Array.from(new Set(rawNames.map((name: unknown) => String(name || '').trim()).filter(Boolean)));
+    if (names.length === 0 || names.length > 100) return NextResponse.json({ error: "1 tadan 100 tagacha o‘quvchi kiriting" }, { status: 400 });
+    const parsedNames = names.map(fullName => createStudentSchema.safeParse({ fullName }));
+    const invalid = parsedNames.find(result => !result.success);
 
-    if (!parsed.success) {
+    if (invalid && !invalid.success) {
       return NextResponse.json(
-        { error: parsed.error.errors[0]?.message || "Ma'lumotlar noto'g'ri kiritildi" },
+        { error: invalid.error.errors[0]?.message || "Ma'lumotlar noto'g'ri kiritildi" },
         { status: 400 }
       );
     }
-
-    const { fullName } = parsed.data;
-
-    let newStudent: Student;
+    const cleanNames = parsedNames.map(result => result.success ? result.data.fullName : '').filter(Boolean);
+    let newStudents: Student[];
 
     if (isSupabaseConfigured) {
+      const { data: existing } = await supabaseAdmin.from('students').select('full_name').eq('class_id', classId);
+      const existingSet = new Set((existing || []).map(item => item.full_name.toLocaleLowerCase('uz')));
+      const toInsert = cleanNames.filter(fullName => !existingSet.has(fullName.toLocaleLowerCase('uz')));
+      if (!toInsert.length) return NextResponse.json({ error: "Bu o‘quvchilar allaqachon sinfda bor" }, { status: 409 });
       const { data, error } = await supabaseAdmin
         .from('students')
-        .insert({
+        .insert(toInsert.map(full_name => ({
           class_id: classId,
           teacher_id: session.userId,
-          full_name: fullName,
-        })
+          full_name,
+        })))
         .select('*')
-        .single();
 
       if (error) {
         console.error('Error inserting student:', error);
         return NextResponse.json({ error: "O'quvchini qo'shishda xatolik yuz berdi" }, { status: 500 });
       }
 
-      newStudent = data;
+      newStudents = data || [];
     } else {
-      newStudent = {
-        id: crypto.randomUUID(),
-        class_id: classId,
-        full_name: fullName,
-        created_at: new Date().toISOString(),
-      };
-      memoryDB.students.set(newStudent.id, newStudent);
+      newStudents = cleanNames.map(full_name => ({ id: crypto.randomUUID(), class_id: classId, full_name, created_at: new Date().toISOString() }));
+      newStudents.forEach(student => memoryDB.students.set(student.id, student));
     }
 
-    return NextResponse.json({ success: true, student: newStudent }, { status: 201 });
+    return NextResponse.json({ success: true, students: newStudents, student: newStudents[0], added: newStudents.length }, { status: 201 });
   } catch (error: any) {
     console.error('POST /api/classes/[id]/students error:', error);
     return NextResponse.json({ error: "Server xatosi yuz berdi" }, { status: 500 });
